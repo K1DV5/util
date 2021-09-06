@@ -29,9 +29,9 @@ num0000  = '\u137C'
 
 def etnum(n: int):
     if type(n) != int:
-        raise ValueError(n, 'is not an integer.')
+        raise ValueError(f'{n} is not an integer.')
     if n < 1:
-        raise ValueError(n, 'is not a natural number')
+        raise ValueError(f'{n} is not a natural number')
 
     ns = str(n)
     numlen = len(ns)
