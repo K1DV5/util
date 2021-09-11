@@ -79,12 +79,24 @@ const vowels = {
 }
 
 customElements.define('et-input', class extends HTMLInputElement {
+    static get observedAttributes() {
+        return ['data-on']
+    }
+
     constructor() {
         super()
         if (this.type !== 'text') return
-        this.addEventListener('keydown', this.onKeyDown)
         this.lastChars = ''
-        this.inserted = 0
+    }
+
+    attributeChangedCallback(name, old, anew) {
+        if (old == null || old == 'false') {
+            if (anew == 'true') {
+                this.addEventListener('keydown', this.onKeyDown)
+            }
+        } else if (anew == 'false') {
+            this.removeEventListener('keydown', this.onKeyDown)
+        }
     }
 
     arrangeLast(newChar, capsOn) {
@@ -96,7 +108,7 @@ customElements.define('et-input', class extends HTMLInputElement {
     }
 
     onKeyDown(e) {
-        if (e.keyCode < 65 || e.keyCode > 90 || e.ctrlKey || e.modKey) return
+        if (e.keyCode < 65 || e.keyCode > 90 || e.ctrlKey || e.modKey || !e.getModifierState) return
         let char = e.key, capsOn = e.getModifierState('CapsLock')
         this.arrangeLast(char, capsOn)
         let firsts = capsOn ? capsChars : firstChars
