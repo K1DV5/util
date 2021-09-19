@@ -94,7 +94,7 @@ customElements.define('et-input', class extends HTMLInputElement {
             if (anew == 'true') {
                 this.addEventListener('keydown', this.onKeyDown)
             }
-        } else if (anew == 'false') {
+        } else if (anew == 'false' || anew == null) {
             this.removeEventListener('keydown', this.onKeyDown)
         }
     }
