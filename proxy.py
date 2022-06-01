@@ -11,6 +11,8 @@ buffer_size = 4096
 forward_to = ('localhost', 3000)
 forward_to_raw = ('localhost', 600)
 
+http_starts = [verb.encode() + b' ' for verb in ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']]
+
 class TheServer:
     input_list = []
     channel = {}
@@ -32,7 +34,7 @@ class TheServer:
                     break
                 try:
                     data = s.recv(buffer_size)
-                except ConnectionResetError:
+                except (ConnectionResetError, ConnectionAbortedError):
                     data = None
                 if not data:
                     self.on_close(s)
@@ -70,22 +72,24 @@ class TheServer:
         # print("{0} has disconnected".format(s.getpeername()))
         #remove objects from input_list
         self.input_list.remove(s)
-        self.input_list.remove(self.channel[s])
-        out = self.channel[s]
         # close the connection with client
-        self.channel[out].close()  
+        s.close()
+        if s not in self.channel:  # close requested before connecting to upstream
+            return
+        forward = self.channel[s]
         # close the connection with remote server
-        self.channel[s].close()
+        forward.close()
+        self.input_list.remove(forward)
         # delete both objects from channel dict
-        del self.channel[out]
         del self.channel[s]
+        del self.channel[forward]
 
     def on_recv(self, s, data):
         if s == self.server:
             return self.channel[s].send(data)
         if s not in self.channel:
-            for verb in ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']:
-                if data.startswith(verb.encode()):
+            for hstart in http_starts:
+                if data.startswith(hstart):
                     self.connect_forward(s)
                     break
             else:
