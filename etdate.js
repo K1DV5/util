@@ -16,7 +16,7 @@ const NORMAL_YR_DAYS = 365
 const MONTH_DAYS_ET = 30
 const LEAP_YEARS = 4
 
-const months = ['መስከረም', 'ጥቅምት', 'ህዳር', 'ታህሳስ', 'ጥር', 'የካቲት', 'መጋቢት', 'ሚያዝያ', 'ግንቦት', 'ሰኔ', 'ሐምሌ', 'ነሐሴ', 'ጳጉሜ']
+const months = ['መስከረም', 'ጥቅምት', 'ህዳር', 'ታህሳስ', 'ጥር', 'የካቲት', 'መጋቢት', 'ሚያዝያ', 'ግንቦት', 'ሰኔ', 'ሐምሌ', 'ነሐሴ', 'ጳጉሜን']
 
 function etdate(gdate) {  // gdate is Date()
     // get last leap year start
@@ -31,23 +31,22 @@ function etdate(gdate) {  // gdate is Date()
     const daysSinceLeapStartEt = daysSinceLeapStart + LEAP_DIFF_DAYS
     // organize into year, month, day
     const yrsSinceLeapStartEt = Math.floor(daysSinceLeapStartEt / NORMAL_YR_DAYS)
-    const daysSinceYrStartEt = daysSinceLeapStartEt % NORMAL_YR_DAYS
-    if (yrsSinceLeapStartEt == LEAP_YEARS && daysSinceYrStartEt == 0) {
-        // last day of eth leap year, pagume 6
-        const eyear = lastLeapStartYrEt + yrsSinceLeapStartEt - 1
-        const eday = 6
-        const emonth = 13
-        return [eyear, emonth, eday]
+    const eyear = lastLeapStartYrEt + yrsSinceLeapStartEt
+    let daysSinceYrStartEt = daysSinceLeapStartEt % NORMAL_YR_DAYS
+    if (yrsSinceLeapStartEt === LEAP_YEARS) {
+        if (daysSinceYrStartEt === 0) {
+            // last day of eth leap year, pagume 6
+            return [eyear - 1, 13, 6]
+        }
+        if (lastLeapYr < gdate.getFullYear()) {
+            // compensate for pagume 6 coming ahead of dec 31
+            daysSinceYrStartEt--
+        }
     }
     const monthsSinceLastYrEt = Math.floor(daysSinceYrStartEt / MONTH_DAYS_ET)
     const daysSinceLastMonthEt = daysSinceYrStartEt % MONTH_DAYS_ET
-    const eyear = lastLeapStartYrEt + yrsSinceLeapStartEt
     const emonth = monthsSinceLastYrEt + 1
-    let eday = daysSinceLastMonthEt + 1
-    // compensate for feb 29 offset
-    if (eyear % LEAP_YEARS == 0 && daysSinceYrStartEt < 3 * MONTH_DAYS_ET + 20) {
-        eday -= 1
-    }
+    const eday = daysSinceLastMonthEt + 1
     return [eyear, emonth, eday]
 }
 
